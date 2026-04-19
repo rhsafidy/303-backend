@@ -1,98 +1,364 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 303 Export — Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> Plateforme e-commerce spécialisée dans la vente de spiritueux à l'export.
+> Stack : **NestJS 11 · Prisma 7 · PostgreSQL 16 · TypeScript · pnpm**
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Table des matières
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Variables d'environnement](#variables-denvironnement)
+- [Commandes Prisma](#commandes-prisma)
+- [Démarrage](#démarrage)
+- [Architecture](#architecture)
+- [Structure des fichiers](#structure-des-fichiers)
+- [Endpoints API](#endpoints-api)
+- [Conventions](#conventions)
+- [Troubleshooting](#troubleshooting)
 
-## Project setup
+---
 
-```bash
-$ pnpm install
-```
+## Prérequis
 
-## Compile and run the project
+| Outil | Version minimale |
+|---|---|
+| Node.js | 22.x |
+| pnpm | 9.x |
+| PostgreSQL | 16.x |
+| TypeScript | 5.x |
 
-```bash
-# development
-$ pnpm run start
+---
 
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
-```
-
-## Run tests
+## Installation
 
 ```bash
-# unit tests
-$ pnpm run test
+# Cloner le repo
+git clone <repo-url>
+cd backend
 
-# e2e tests
-$ pnpm run test:e2e
+# Installer les dépendances
+pnpm install
 
-# test coverage
-$ pnpm run test:cov
+# Copier les variables d'environnement
+cp .env.example .env
+# → Éditer .env avec vos valeurs (voir section ci-dessous)
+
+# Générer le client Prisma
+npx prisma generate
+
+# Créer les tables en base
+npx prisma migrate dev --name init
+
+# Démarrer en développement
+pnpm run start:dev
 ```
 
-## Deployment
+Swagger disponible sur : **http://localhost:3000/api**
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Variables d'environnement
+
+```dotenv
+# Connexion PostgreSQL directe (utilisée par PrismaService et les migrations)
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/303?schema=public"
+
+# Optionnel — uniquement si vous utilisez Prisma Accelerate local
+# Généré automatiquement par 'npx prisma dev'
+PRISMA_ACCELERATE_URL="prisma+postgres://localhost:51213/?api_key=..."
+
+# Environnement (contrôle les logs Prisma : query/warn/error en dev, error seul en prod)
+NODE_ENV="development"
+
+# Port HTTP de l'API
+PORT=3000
+```
+
+> **Note :** `PRISMA_ACCELERATE_URL` n'est nécessaire que si vous utilisez le proxy local Prisma Postgres. Dans la plupart des cas, `DATABASE_URL` suffit.
+
+---
+
+## Commandes Prisma
+
+### Génération & Setup
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+# Générer le client Prisma (obligatoire après tout changement de schéma)
+npx prisma generate
+
+# Ouvrir Prisma Studio (interface BDD graphique)
+npx prisma studio
+
+# Valider la syntaxe du schéma
+npx prisma validate
+
+# Formater le fichier schéma
+npx prisma format
+
+# Démarrer le proxy Prisma Postgres local (si PRISMA_ACCELERATE_URL est utilisée)
+npx prisma dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Migrations
 
-## Resources
+```bash
+# Créer et appliquer une migration en développement
+npx prisma migrate dev --name <nom_descriptif>
 
-Check out a few resources that may come in handy when working with NestJS:
+# Exemples :
+npx prisma migrate dev --name init
+npx prisma migrate dev --name add_order_table
+npx prisma migrate dev --name add_review_field_to_product
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Voir l'état des migrations
+npx prisma migrate status
 
-## Support
+# Voir la différence schéma ↔ BDD (sans appliquer)
+npx prisma migrate diff
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# ⚠️ DESTRUCTIF — Réinitialiser toute la base (dev uniquement)
+npx prisma migrate reset
 
-## Stay in touch
+# Appliquer les migrations en production (sans interaction)
+npx prisma migrate deploy
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Base de données
 
-## License
+```bash
+# Synchroniser le schéma sans migration (prototypage rapide, ne pas utiliser en prod)
+npx prisma db push
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Introspecter la BDD existante → met à jour schema.prisma
+npx prisma db pull
+
+# Lancer le seed
+npx prisma db seed
+```
+
+---
+
+## Démarrage
+
+```bash
+# Développement (watch mode)
+pnpm run start:dev
+
+# Production
+pnpm run build
+pnpm run start:prod
+
+# Si vous utilisez PRISMA_ACCELERATE_URL, démarrer le proxy dans un terminal séparé :
+npx prisma dev
+# puis dans un autre terminal :
+pnpm run start:dev
+```
+
+---
+
+## Architecture
+
+Le projet suit la **Clean Architecture** (Uncle Bob), adaptée à NestJS. Les dépendances pointent toujours vers l'intérieur.
+
+```
+┌──────────────────────────────────────────────────────┐
+│         PRESENTATION  (Controllers, DTOs)            │
+├──────────────────────────────────────────────────────┤
+│         APPLICATION   (Use Cases, Types)             │
+├──────────────────────────────────────────────────────┤
+│         DOMAIN        (Interfaces, Contrats)         │
+├──────────────────────────────────────────────────────┤
+│         INFRASTRUCTURE (Prisma, Repositories)        │
+└──────────────────────────────────────────────────────┘
+```
+
+### Flux d'une requête
+
+```
+Client HTTP
+  → Controller          (valide DTO, appelle use case)
+  → Use Case            (logique métier, appelle IRepository)
+  → Repository Prisma   (implémente IRepository, requêtes BDD)
+  → PrismaService       (connexion PostgreSQL)
+  → PostgreSQL
+```
+
+### Couche Domain
+
+Aucune dépendance externe. Interfaces TypeScript pures.
+
+- `domain/interfaces/product.interface.ts` — `IProduct`, `IProductCategory`, `IProductImage`
+- `domain/repositories/base.repository.ts` — `BaseRepository<T>` (findAll, findById, create, update, delete, count)
+- `domain/repositories/src/product.repository.ts` — `IProductRepository` (étend BaseRepository + méthodes catalogue)
+
+### Couche Application
+
+Logique métier. Ne connaît jamais Prisma.
+
+- `application/use-cases/base.use-case.ts` — `BaseUseCases<T>`
+- `application/use-cases/src/product/product.main.use-case.ts` — `MainProductUseCases`
+- `application/types/product/product.types.ts` — Types internes (CreateProductData, etc.)
+
+### Couche Infrastructure
+
+Seul endroit où Prisma est utilisé.
+
+- `infrastructure/database/prisma/prisma.service.ts` — `PrismaService extends PrismaClient`
+- `infrastructure/database/prisma/repositories/src/product.repository.prisma.ts` — Implémentation concrète
+
+### Couche Presentation
+
+Controllers HTTP et DTOs.
+
+- `presentation/controllers/src/clients/product.controller.ts`
+- `presentation/controllers/src/admin/product.admin.controller.ts`
+- `presentation/dtos/product/product.dto.ts`
+
+### Module NestJS
+
+`modules/product.module.ts` est le **seul endroit** qui connaît les implémentations concrètes et lie les tokens d'injection :
+
+```typescript
+{
+  provide: 'ProductRepository',
+  useClass: ProductRepositoryPrisma,
+}
+```
+
+---
+
+## Structure des fichiers
+
+```
+src/
+├── app.module.ts
+├── main.ts
+├── modules/
+│   └── product.module.ts
+├── domain/
+│   ├── interfaces/
+│   │   └── product.interface.ts
+│   └── repositories/
+│       ├── base.repository.ts
+│       └── src/
+│           └── product.repository.ts
+├── application/
+│   ├── use-cases/
+│   │   ├── base.use-case.ts
+│   │   └── src/product/
+│   │       └── product.main.use-case.ts
+│   └── types/product/
+│       └── product.types.ts
+├── infrastructure/
+│   └── database/prisma/
+│       ├── prisma.service.ts
+│       ├── schema/
+│       │   └── schema.prisma
+│       ├── migrations/
+│       ├── generated/          ← Ne pas éditer manuellement
+│       └── repositories/
+│           ├── base.repository.prisma.ts
+│           └── src/
+│               └── product.repository.prisma.ts
+└── presentation/
+    ├── controllers/
+    │   ├── base.controller.ts
+    │   └── src/
+    │       ├── clients/product.controller.ts
+    │       └── admin/product.admin.controller.ts
+    └── dtos/product/
+        └── product.dto.ts
+```
+
+---
+
+## Endpoints API
+
+### Catalogue public
+
+| Méthode | Route | Description |
+|---|---|---|
+| GET | `/products` | Liste paginée (page, limit, category, sort, inStock, search, minPrice, maxPrice) |
+| GET | `/products/featured` | Produits mis en avant |
+| GET | `/products/new-arrivals` | 8 derniers produits |
+| GET | `/products/best-sellers` | Top 10 ventes |
+| GET | `/products/search?q=...` | Recherche full-text |
+| GET | `/products/:slug` | Fiche produit par slug SEO |
+| GET | `/products/:id/related` | 4 produits similaires |
+| GET | `/products/:id` | Produit par UUID |
+| GET | `/categories` | Toutes catégories actives |
+| GET | `/categories/:slug` | Produits d'une catégorie |
+
+### Admin (JWT requis)
+
+| Méthode | Route | Description |
+|---|---|---|
+| POST | `/admin/products` | Créer un produit |
+| PATCH | `/admin/products/:id` | Modifier un produit |
+| DELETE | `/admin/products/:id` | Supprimer un produit |
+| PATCH | `/admin/products/:id/toggle-active` | Activer/désactiver |
+| PATCH | `/admin/products/:id/stock` | Mettre à jour le stock |
+| POST | `/admin/products/:id/images` | Ajouter une image |
+| DELETE | `/admin/products/:id/images/:imageId` | Supprimer une image |
+| PATCH | `/admin/products/:id/images/reorder` | Réordonner les images |
+| PATCH | `/admin/products/:id/images/:imageId/primary` | Définir image principale |
+| POST | `/admin/categories` | Créer une catégorie |
+| PATCH | `/admin/categories/:id` | Modifier une catégorie |
+| DELETE | `/admin/categories/:id` | Supprimer une catégorie |
+
+---
+
+## Conventions
+
+### Règles absolues
+
+- Un **controller** ne contient **jamais** de logique métier
+- Un **use case** ne connaît **jamais** Prisma
+- Un **repository** implémente une **interface domain**, pas une classe concrète
+- Les **DTOs HTTP** sont distincts des **types applicatifs** internes
+- Le dossier `generated/` n'est **jamais** édité manuellement
+- Les **tokens d'injection** (`'ProductRepository'`) sont définis dans le **module uniquement**
+
+### Nommage
+
+| Type | Convention | Exemple |
+|---|---|---|
+| Interface domain | `I` + PascalCase | `IProduct`, `IProductRepository` |
+| Use case | Nom + `UseCases` | `MainProductUseCases` |
+| Repository | Nom + `RepositoryPrisma` | `ProductRepositoryPrisma` |
+| DTO | Action + Nom + `Dto` | `CreateProductDto` |
+| Module | Domaine + `Module` | `ProductModule` |
+
+### Ajouter un nouveau domaine métier
+
+1. Interface → `domain/interfaces/<entity>.interface.ts`
+2. Contrat repo → `domain/repositories/src/<entity>.repository.ts`
+3. Implémentation → `infrastructure/database/prisma/repositories/src/<entity>.repository.prisma.ts`
+4. Use case → `application/use-cases/src/<entity>/<entity>.main.use-case.ts`
+5. Controller → `presentation/controllers/src/clients/<entity>.controller.ts`
+6. Module → `modules/<entity>.module.ts`
+7. Import dans `AppModule`
+
+---
+
+## Troubleshooting
+
+| Erreur | Solution |
+|---|---|
+| `ECONNREFUSED 127.0.0.1:51213` | Lancer `npx prisma dev` dans un terminal séparé, ou utiliser `DATABASE_URL` directement |
+| `@prisma/client did not initialize yet` | Lancer `npx prisma generate` |
+| `Cannot read properties of undefined (reading 'product')` | `PrismaService` doit `extends PrismaClient`, pas avoir un champ privé |
+| `ValidationError` sur un DTO | Vérifier que `app.useGlobalPipes(new ValidationPipe({ transform: true }))` est dans `main.ts` |
+| Migration déjà appliquée | `npx prisma migrate status` — ne jamais modifier `_prisma_migrations` manuellement |
+
+---
+
+## Swagger
+
+Documentation API interactive disponible sur **http://localhost:3000/api** après démarrage.
+
+---
+
+*303 Export — Architecture v1.0.0 — Confidentiel*

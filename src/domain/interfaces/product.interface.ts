@@ -1,4 +1,4 @@
-// src/domain/interfaces/i-product.interface.ts
+// src/domain/interfaces/product.interface.ts
 // Couche Domain : aucune dépendance externe (pas de NestJS, pas de Prisma)
 // Correspond exactement à la table products du schéma PostgreSQL
 

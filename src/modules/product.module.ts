@@ -1,19 +1,21 @@
-// src/product.module.ts
+// src/modules/product.module.ts
 // Module NestJS — seul endroit qui connaît les implémentations concrètes
 // Lie interfaces → implémentations via les tokens @Inject
 // Règle : un module exporte uniquement les use cases et services consommés
 //         par d'autres modules. Les repositories ne s'exportent jamais.
 
 import { Module } from '@nestjs/common';
-import { PrismaService } from '../infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '@infrastructure/database/prisma/prisma.service';
 import { ProductRepositoryPrisma } from '@infrastructure/database/prisma/repositories/src/product.repository.prisma';
 import { MainProductUseCases } from '@application/use-cases/src/product/product.main.use-case';
 import {
   ProductController,
   CategoryController,
-  AdminProductController,
+} from '@presentation/controllers/src/clients/product.controller';
+import {
   AdminCategoryController,
-} from '../presentation/controllers/src/product.controller';
+  AdminProductController,
+} from '@presentation/controllers/src/admin/product.admin.controller';
 
 @Module({
   controllers: [

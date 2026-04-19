@@ -3,7 +3,7 @@
 // Les controllers spécifiques l'étendent et surchargent si besoin
 
 import { Get, Param, Delete } from '@nestjs/common';
-import { BaseUseCases } from '../../application/use-cases/base.use-case';
+import { BaseUseCases } from '@application/use-cases/base.use-case';
 
 export abstract class BaseController<T> {
   constructor(protected readonly useCases: BaseUseCases<T>) {}

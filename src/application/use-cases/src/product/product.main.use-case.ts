@@ -4,7 +4,7 @@
 // Règle : CRUD simple = ici. Logique 3+ entités = service applicatif dédié.
 
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { BaseUseCases } from '../../base.use-case';
+import { BaseUseCases } from '@application/use-cases/base.use-case';
 
 import type {
   CreateProductData,

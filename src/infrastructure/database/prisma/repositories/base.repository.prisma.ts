@@ -1,4 +1,4 @@
-// src/infrastructure/database/repositories/base.repository.prisma.ts
+// src/infrastructure/database/prisma/repositories/base.repository.prisma.ts
 // Implémentation générique du BaseRepository avec Prisma
 // Adapté Prisma (pas TypeORM comme dans le doc de référence)
 // Les repositories concrets héritent de cette classe
