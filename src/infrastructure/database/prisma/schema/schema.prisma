@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated"
+  moduleFormat    = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  description String?
+  imageUrl    String?   @map("image_url")
+  parentId    String?   @map("parent_id")
+  isActive    Boolean   @default(true)  @map("is_active")
+  sortOrder   Int       @default(0)     @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt      @map("updated_at")
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id               String   @id @default(uuid())
+  slug             String   @unique
+  name             String
+  description      String   @db.Text
+  shortDescription String?  @map("short_description")
+  price            Decimal  @db.Decimal(10, 2)
+  priceTtc         Decimal  @map("price_ttc") @db.Decimal(10, 2)
+  compareAtPrice   Decimal? @map("compare_at_price") @db.Decimal(10, 2)
+  sku              String   @unique
+  stockQuantity    Int      @default(0)  @map("stock_quantity")
+  lowStockThreshold Int     @default(5)  @map("low_stock_threshold")
+  isActive         Boolean  @default(true)  @map("is_active")
+  isFeatured       Boolean  @default(false) @map("is_featured")
+  categoryId       String   @map("category_id")
+  alcoholDegree    Decimal? @map("alcohol_degree") @db.Decimal(5, 2)
+  volumeMl         Int?     @map("volume_ml")
+  originCountry    String?  @map("origin_country")
+  tags             String[]
+  metaTitle        String?  @map("meta_title")
+  metaDescription  String?  @map("meta_description") @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt      @map("updated_at")
+
+  category   Category       @relation(fields: [categoryId], references: [id])
+  images     ProductImage[]
+  
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  url       String
+  altText   String?  @map("alt_text")
+  isPrimary Boolean  @default(false) @map("is_primary")
+  sortOrder Int      @default(0)     @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
